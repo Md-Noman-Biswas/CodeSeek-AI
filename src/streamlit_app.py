@@ -82,7 +82,7 @@ def main():
 
     for i, item in enumerate(results, start=1):
         st.markdown(f"**{i}. {item['question']}**")
-        st.write(item["answer"])
+        st.markdown(item["answer"], unsafe_allow_html=True)
         st.caption(f"Similarity score: {item['score']:.4f}")
         st.divider()
 
