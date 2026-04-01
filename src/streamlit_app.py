@@ -30,10 +30,8 @@ class GitHubModelsError(RuntimeError):
 def ensure_dataset():
     if not DATASET_PATH.exists():
         with st.spinner("Preparing dataset (first run only)..."):
-            subprocess.run(
-                [sys.executable, "prepare_stackoverflow_sample.py"],
-                check=True
-            )
+            script = Path(__file__).parent / "prepare_stackoverflow_sample.py"
+            subprocess.run([sys.executable, str(script)], check=True)
 
 
 # ================= ENGINE =================
