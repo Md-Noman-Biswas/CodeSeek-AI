@@ -2,38 +2,34 @@
 
 from __future__ import annotations
 
-import os
 import sys
 import subprocess
 from pathlib import Path
 from typing import List
 
-import requests
 import streamlit as st
+from sentence_transformers import SentenceTransformer
 
 from search_engine import SemanticSearchEngine
 
 
 # ================= CONFIG =================
-DEFAULT_MODEL = os.getenv("GITHUB_EMBEDDING_MODEL", "openai/text-embedding-3-small")
-API_VERSION = os.getenv("GITHUB_API_VERSION", "2026-03-10")
-BASE_URL = "https://models.github.ai"
 DATASET_PATH = Path("data/stackoverflow_sample_3000.json")
-
-
-# ================= ERRORS =================
-class GitHubModelsError(RuntimeError):
-    pass
 
 
 # ================= DATASET SETUP =================
 def ensure_dataset():
     if not DATASET_PATH.exists():
         with st.spinner("Preparing dataset (first run only)..."):
-            subprocess.run(
-                [sys.executable, "prepare_stackoverflow_sample.py"],
-                check=True
+            script = Path(__file__).parent / "prepare_stackoverflow_sample.py"
+            result = subprocess.run(
+                [sys.executable, str(script)],
+                capture_output=True,
+                text=True
             )
+            if result.returncode != 0:
+                st.error(f"Dataset preparation failed:\n\n{result.stderr}")
+                st.stop()
 
 
 # ================= ENGINE =================
@@ -43,37 +39,14 @@ def load_engine() -> SemanticSearchEngine:
 
 
 # ================= EMBEDDING =================
+@st.cache_resource(show_spinner=False)
+def load_embedder() -> SentenceTransformer:
+    return SentenceTransformer("all-MiniLM-L6-v2")
+
+
 def get_query_embedding(query: str) -> List[float]:
-    token = os.getenv("GITHUB_TOKEN")
-    org = os.getenv("GITHUB_ORG")
-
-    if not token:
-        raise GitHubModelsError("Missing GITHUB_TOKEN environment variable.")
-
-    endpoint = f"{BASE_URL}/inference/embeddings"
-    if org:
-        endpoint = f"{BASE_URL}/orgs/{org}/inference/embeddings"
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {token}",
-        "X-GitHub-Api-Version": API_VERSION,
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        "model": DEFAULT_MODEL,
-        "input": query,
-        "dimensions": 384
-    }
-
-    response = requests.post(endpoint, headers=headers, json=payload, timeout=30)
-
-    if response.status_code >= 400:
-        raise GitHubModelsError(f"API Error {response.status_code}: {response.text[:300]}")
-
-    data = response.json()
-    return data["data"][0]["embedding"]
+    model = load_embedder()
+    return model.encode(query).tolist()
 
 
 # ================= MAIN APP =================
@@ -83,7 +56,6 @@ def main():
     st.title("🔎 CodeSeek AI")
     st.subheader("Semantic Programming Search")
 
-    # Ensure dataset exists
     ensure_dataset()
 
     query = st.text_area(
