@@ -63,7 +63,8 @@ def get_query_embedding(query: str) -> List[float]:
 
     payload = {
         "model": DEFAULT_MODEL,
-        "input": query
+        "input": query,
+        "dimensions": 384
     }
 
     response = requests.post(endpoint, headers=headers, json=payload, timeout=30)
