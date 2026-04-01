@@ -1,3 +1,5 @@
-altair
-pandas
 streamlit
+faiss-cpu
+numpy
+requests
+datasets
