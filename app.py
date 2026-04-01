@@ -10,6 +10,11 @@ import requests
 import streamlit as st
 
 from search_engine import SemanticSearchEngine
+import subprocess, pathlib
+
+
+if not pathlib.Path("data/stackoverflow_sample_3000.json").exists():
+    subprocess.run(["python", "prepare_stackoverflow_sample.py"], check=True)
 
 
 DEFAULT_MODEL = os.getenv("GITHUB_EMBEDDING_MODEL", "openai/text-embedding-3-small")
