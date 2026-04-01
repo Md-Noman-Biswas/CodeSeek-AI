@@ -22,7 +22,7 @@ def main() -> None:
         raise ValueError(f"Dataset has only {len(ds)} rows; expected at least {SAMPLE_SIZE}.")
 
     sampled = ds.shuffle(seed=42).select(range(SAMPLE_SIZE))
-    sampled = sampled.select_columns(["question", "answer", "embeddings"])
+    sampled = sampled.select_columns(["question", "answer", "embedding"])
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_PATH.open("w", encoding="utf-8") as f:

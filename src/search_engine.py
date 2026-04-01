@@ -51,7 +51,7 @@ class SemanticSearchEngine:
             for row in rows
         ]
 
-        embeddings = np.asarray([row["embeddings"] for row in rows], dtype=np.float32)
+        embeddings = np.asarray([row["embedding"] for row in rows], dtype=np.float32)
         if embeddings.ndim != 2:
             raise ValueError("Embeddings must be a 2D matrix [num_rows, dim].")
 
